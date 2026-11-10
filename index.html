@@ -1,0 +1,939 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Fábrica de Shorts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#17172a; --chao1:#2b2b47; --chao2:#25253e; --painel:#22223a; --painel2:#2c2c4a;
+  --borda:#0b0b16; --texto:#f1f1f7; --fraco:#a7a7c7; --amarelo:#ffe14d; --verde:#5ee06b;
+  --vermelho:#ff5c6c; --azul:#5cc8ff; --roxo:#b08cff; --laranja:#ffa04d; --rosa:#ff7ad9; --ouro:#ffc83d;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--texto);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+a{color:var(--azul)}
+.pix{font-family:"Press Start 2P",monospace;letter-spacing:.5px}
+.num{font-family:VT323,monospace;font-size:1.35em;line-height:1}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding:14px 16px;background:#101020;border-bottom:4px solid var(--borda)}
+header h1{margin:0;font-size:15px;color:var(--amarelo);text-shadow:3px 3px 0 #000}
+.cota{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--fraco)}
+.barra{width:140px;height:12px;background:#000;border:2px solid #444;position:relative}
+.barra i{position:absolute;left:0;top:0;bottom:0;background:var(--verde)}
+nav{display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px;background:#141426;border-bottom:4px solid var(--borda)}
+nav button{font-family:"Press Start 2P",monospace;font-size:10px;padding:9px 10px;background:var(--painel2);color:var(--texto);border:3px solid var(--borda);cursor:pointer;box-shadow:inset -3px -3px 0 rgba(0,0,0,.35)}
+nav button.ativo{background:var(--amarelo);color:#111}
+main{padding:16px;max-width:1200px;margin:0 auto}
+.aba{display:none}.aba.ativa{display:block}
+.caixa{background:var(--painel);border:4px solid var(--borda);box-shadow:inset -4px -4px 0 rgba(0,0,0,.3),inset 4px 4px 0 rgba(255,255,255,.05);padding:14px;margin-bottom:16px}
+.caixa h2{font-family:"Press Start 2P",monospace;font-size:11px;margin:0 0 12px;color:var(--amarelo)}
+.btn{font:600 13px system-ui,sans-serif;padding:8px 12px;background:var(--azul);color:#081018;border:3px solid var(--borda);cursor:pointer;box-shadow:inset -3px -3px 0 rgba(0,0,0,.3)}
+.btn:hover{filter:brightness(1.1)}.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sec{background:var(--painel2);color:var(--texto)}
+.btn.ok{background:var(--verde)}.btn.perigo{background:var(--vermelho);color:#fff}.btn.ouro{background:var(--ouro)}
+.btn.mini{padding:4px 8px;font-size:12px}
+input,select,textarea{font:14px system-ui,sans-serif;background:#0f0f1e;color:var(--texto);border:3px solid var(--borda);padding:8px;max-width:100%}
+textarea{width:100%}
+.linha{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.fraco{color:var(--fraco)}.peq{font-size:13px}
+#avisos{position:fixed;right:16px;bottom:16px;left:16px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;z-index:50;pointer-events:none}
+.aviso{pointer-events:auto;max-width:520px;background:#101020;border:3px solid var(--azul);padding:10px 14px;box-shadow:4px 4px 0 #000}
+.aviso.erro{border-color:var(--vermelho)}.aviso.ok{border-color:var(--verde)}
+
+/* ---------- fábrica ---------- */
+.chao{background-color:var(--chao1);background-image:repeating-conic-gradient(var(--chao1) 0 25%,var(--chao2) 0 50%);background-size:48px 48px;border:4px solid var(--borda);padding:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:18px}
+.mesa{background:rgba(10,10,22,.55);border:3px solid var(--borda);padding:10px;text-align:center;position:relative}
+.mesa svg{width:120px;height:108px;image-rendering:pixelated;display:block;margin:0 auto}
+.mesa .nome{font-family:"Press Start 2P",monospace;font-size:10px;margin:6px 0 4px}
+.mesa .st{font-size:12px;color:var(--fraco);min-height:34px}
+.led{display:inline-block;width:10px;height:10px;border:2px solid #000;margin-right:6px;vertical-align:-1px;background:#777}
+.mesa.trabalhando .led{background:var(--amarelo);animation:pisca .5s steps(2) infinite}
+.mesa.ok .led{background:var(--verde)}.mesa.erro .led{background:var(--vermelho)}.mesa.espera .led{background:#777}
+.mesa.trabalhando .g{animation:pisca .35s steps(2) infinite}
+.mesa.trabalhando svg{animation:pula .6s steps(2) infinite}
+.mesa.voce{border-color:var(--ouro);grid-column:span 2;cursor:pointer}
+.mesa.voce .nome{color:var(--ouro)}
+@keyframes pisca{50%{opacity:.35}}
+@keyframes pula{50%{transform:translateY(-2px)}}
+@media (max-width:420px){.mesa.voce{grid-column:span 1}}
+#diario{max-height:260px;overflow:auto;font-family:VT323,monospace;font-size:18px;line-height:1.2;background:#0b0b16;border:3px solid #000;padding:8px}
+#diario div.erro{color:var(--vermelho)}#diario div.ok{color:var(--verde)}#diario span{color:#7d7da3}
+
+/* ---------- radar ---------- */
+.indic{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.indic div{background:#0f0f1e;border:3px solid var(--borda);padding:10px}
+.indic b{display:block;font-family:VT323,monospace;font-size:34px;line-height:1;color:var(--amarelo)}
+.tabela{overflow-x:auto;border:3px solid var(--borda)}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:14px}
+th,td{padding:7px 8px;border-bottom:2px solid #15152a;text-align:left;vertical-align:middle}
+th{background:#101020;font-family:"Press Start 2P",monospace;font-size:9px;white-space:nowrap}
+th.ord{cursor:pointer;color:var(--azul)}th.ord:hover{color:var(--amarelo)}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+td img{width:96px;height:54px;object-fit:cover;display:block;border:2px solid #000;background:#000}
+.mult{font-family:VT323,monospace;font-size:24px;padding:0 6px;border:2px solid #000;background:#333;display:inline-block;min-width:58px;text-align:center}
+.m2{background:#1e6b2a}.m5{background:#b38600;color:#000}.m10{background:var(--rosa);color:#000}
+.tag{font-family:"Press Start 2P",monospace;font-size:8px;padding:3px 5px;border:2px solid #000;background:var(--laranja);color:#000;margin-left:6px;vertical-align:2px}
+.tag.s{background:var(--roxo)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{padding:6px 10px;background:#0f0f1e;color:var(--texto);border:3px solid var(--borda);cursor:pointer;font-size:13px}
+.chips button.ativo{background:var(--azul);color:#000}
+
+/* ---------- cartões ---------- */
+.grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.cartao{background:#15152a;border:3px solid var(--borda);padding:10px;display:flex;flex-direction:column;gap:8px}
+.cartao .topo{display:flex;gap:10px;align-items:center}
+.cartao .topo img{width:48px;height:48px;border:2px solid #000;object-fit:cover;flex:none;background:#000}
+.cartao .topo .t{font-weight:700;word-break:break-word}
+.cartao img.capa{width:100%;aspect-ratio:16/9;object-fit:cover;border:2px solid #000;background:#000}
+.agenda{display:grid;grid-template-columns:repeat(7,minmax(130px,1fr));gap:8px;overflow-x:auto}
+.dia{background:#15152a;border:3px solid var(--borda);min-height:150px;padding:8px}
+.dia h3{font-family:"Press Start 2P",monospace;font-size:9px;margin:0 0 8px;color:var(--azul)}
+.dia.hoje{border-color:var(--amarelo)}
+.dia .item{background:#22223a;border:2px solid #000;padding:5px;font-size:12px;margin-bottom:6px}
+</style>
+</head>
+<body>
+<header>
+  <h1 class="pix">▣ FÁBRICA DE SHORTS</h1>
+  <div class="cota" title="Contagem feita por este navegador. A cota do Google zera à meia-noite do horário do Pacífico (4h ou 5h em Brasília).">
+    <span class="pix" style="font-size:9px">COTA HOJE</span>
+    <div class="barra"><i id="cotaBarra"></i></div>
+    <span class="num" id="cotaTxt">0 / 10.000</span>
+  </div>
+</header>
+<nav id="menu">
+  <button data-aba="fabrica" class="ativo">Fábrica</button>
+  <button data-aba="radar">Radar</button>
+  <button data-aba="canais">Canais</button>
+  <button data-aba="descobrir">Descobrir</button>
+  <button data-aba="pautas">Pautas</button>
+  <button data-aba="agenda">Agenda</button>
+  <button data-aba="config">Configuração</button>
+</nav>
+<main>
+
+<!-- ================= FÁBRICA ================= -->
+<section class="aba ativa" id="aba-fabrica">
+  <div id="boasVindas" class="caixa" style="display:none">
+    <h2>BEM-VINDO!</h2>
+    <p>Para começar: <b>1)</b> abra a aba <b>Configuração</b> e cole a sua chave da API do YouTube; <b>2)</b> na aba <b>Canais</b>, adicione os concorrentes; <b>3)</b> clique em <b>Atualizar radar</b>.</p>
+  </div>
+  <div class="chao" id="chao"></div>
+  <div class="linha" style="margin:14px 0">
+    <button class="btn" id="btnRadarFab">Atualizar radar</button>
+    <span class="fraco peq" id="estimativa"></span>
+  </div>
+  <div class="caixa">
+    <h2>DIÁRIO DE ATIVIDADES</h2>
+    <div id="diario"></div>
+    <div class="linha" style="margin-top:8px"><button class="btn sec mini" id="btnLimparDiario">Limpar diário</button></div>
+  </div>
+</section>
+
+<!-- ================= RADAR ================= -->
+<section class="aba" id="aba-radar">
+  <div class="caixa">
+    <h2>RADAR DE OUTLIERS</h2>
+    <p class="fraco peq">Multiplicador = views do vídeo ÷ mediana de views do próprio canal (últimos 50 vídeos, separando Shorts e longos). Vídeos com menos de 3 dias ficam fora da mediana e aparecem como <span class="tag">NOVO</span>. Shorts = vídeos de até 180 segundos (a API não informa o formato; é uma aproximação pela duração).</p>
+    <div class="linha" style="margin-bottom:10px">
+      <div class="chips" id="fFormato">
+        <button data-v="shorts">Shorts</button><button data-v="longos">Longos</button>
+      </div>
+      <div class="chips" id="fPeriodo">
+        <button data-v="90">90 dias</button><button data-v="365">1 ano</button><button data-v="tudo">Tudo</button>
+      </div>
+      <select id="fCanal"></select>
+      <button class="btn" id="btnRadar">Atualizar radar</button>
+      <button class="btn sec" id="btnRadarForcar" title="Ignora o que já foi lido nas últimas 6 horas">Forçar releitura</button>
+    </div>
+    <div class="indic">
+      <div>Vídeos analisados<b id="iTotal">0</b></div>
+      <div>Maior multiplicador<b id="iMaior">—</b></div>
+      <div>Passam de 2x<b id="iAcima">0</b></div>
+      <div>Canais no radar<b id="iCanais">0</b></div>
+    </div>
+    <div class="tabela">
+      <table>
+        <thead><tr>
+          <th></th><th>Vídeo</th><th>Canal</th>
+          <th class="ord" data-o="mult">Multiplicador</th>
+          <th class="ord" data-o="views">Views</th>
+          <th class="ord" data-o="data">Data</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="tRadar"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CANAIS ================= -->
+<section class="aba" id="aba-canais">
+  <div class="caixa">
+    <h2>GERENCIAR CANAIS</h2>
+    <p class="fraco peq">Cole um ou vários canais (um por linha ou separados por vírgula). Pode ser @handle ou link: <code>@canal</code>, <code>https://www.youtube.com/@canal</code>, <code>https://www.youtube.com/channel/UC...</code>. Custa 1 unidade por canal.</p>
+    <textarea id="novoCanal" rows="3" placeholder="@concorrente1&#10;https://www.youtube.com/@concorrente2"></textarea>
+    <div class="linha" style="margin-top:8px"><button class="btn" id="btnAddCanal">Adicionar</button></div>
+  </div>
+  <div class="caixa">
+    <h2>CANAIS NO RADAR</h2>
+    <div class="grade" id="listaCanais"></div>
+  </div>
+</section>
+
+<!-- ================= DESCOBRIR ================= -->
+<section class="aba" id="aba-descobrir">
+  <div class="caixa">
+    <h2>BUSCAR CANAIS POR TEMA</h2>
+    <div class="linha">
+      <input id="tema" placeholder="ex.: finanças pessoais" style="flex:1;min-width:200px">
+      <select id="temaIdioma"><option value="pt">Português</option><option value="en">Inglês</option></select>
+      <button class="btn" id="btnBuscarTema">Buscar (100 unidades)</button>
+    </div>
+    <p class="fraco peq">Cada busca gasta 100 das 10.000 unidades do dia.</p>
+    <div class="grade" id="resTema"></div>
+  </div>
+  <div class="caixa">
+    <h2>INDICADOS PELOS CONCORRENTES</h2>
+    <p class="fraco peq">Lê os "canais em destaque" de cada concorrente e mostra os mais citados. Custa 1 unidade por canal do radar. Muitos canais não indicam ninguém; nesse caso a lista vem pequena.</p>
+    <button class="btn" id="btnIndicados">Ver indicados</button>
+    <div class="grade" id="resIndicados" style="margin-top:12px"></div>
+  </div>
+</section>
+
+<!-- ================= PAUTAS ================= -->
+<section class="aba" id="aba-pautas">
+  <div class="caixa">
+    <h2>MESA "VOCÊ": APROVAÇÃO DE PAUTAS</h2>
+    <p class="fraco peq">No Radar, clique em <b>+ Pauta</b> num vídeo que foi bem. Aqui você aprova ou pede revisão. O botão <b>Copiar prompt</b> copia um pedido de títulos pronto para colar no Claude.</p>
+    <div class="chips" id="fPautas" style="margin-bottom:12px">
+      <button data-v="pendente">Aguardando</button><button data-v="aprovada">Aprovadas</button><button data-v="revisar">Revisar</button>
+    </div>
+    <div class="grade" id="listaPautas"></div>
+  </div>
+</section>
+
+<!-- ================= AGENDA ================= -->
+<section class="aba" id="aba-agenda">
+  <div class="caixa">
+    <h2>AGENDA SEMANAL</h2>
+    <div class="linha" style="margin-bottom:10px">
+      <button class="btn sec" id="semAnt">◀ Semana anterior</button>
+      <b id="semTitulo"></b>
+      <button class="btn sec" id="semProx">Próxima semana ▶</button>
+    </div>
+    <p class="fraco peq">As pautas aprovadas entram aqui quando você escolhe um dia para elas (na aba Pautas, em Aprovadas). <span id="semDia"></span></p>
+    <div class="agenda" id="agenda"></div>
+  </div>
+</section>
+
+<!-- ================= CONFIGURAÇÃO ================= -->
+<section class="aba" id="aba-config">
+  <div class="caixa">
+    <h2>CHAVE DA API DO YOUTUBE</h2>
+    <p class="peq">A chave fica guardada <b>só neste navegador</b> (localStorage). Ela não vai para o GitHub nem para nenhum outro lugar, só para o próprio YouTube (googleapis.com) em cada consulta.</p>
+    <div class="linha">
+      <input id="chave" type="password" placeholder="Cole aqui a chave (começa com AIza...)" style="flex:1;min-width:240px" autocomplete="off" spellcheck="false">
+      <button class="btn sec" id="btnVerChave">Mostrar</button>
+      <button class="btn ok" id="btnSalvarChave">Salvar</button>
+      <button class="btn" id="btnTestarChave">Testar (1 unidade)</button>
+      <button class="btn perigo" id="btnApagarChave">Apagar</button>
+    </div>
+    <p class="fraco peq" id="statusChave"></p>
+  </div>
+  <div class="caixa">
+    <h2>ESTILO DO MEU CANAL (PARA O PROMPT)</h2>
+    <p class="fraco peq">Opcional. Cole de 3 a 6 títulos reais do seu canal, um por linha. Eles entram no "Copiar prompt" como exemplo de estilo.</p>
+    <textarea id="exemplos" rows="5"></textarea>
+    <div class="linha" style="margin-top:8px">
+      <label class="peq">Idioma dos títulos: <select id="idiomaTit"><option value="pt">Português</option><option value="en">Inglês</option></select></label>
+      <button class="btn ok" id="btnSalvarEstilo">Salvar</button>
+    </div>
+  </div>
+  <div class="caixa">
+    <h2>CÓPIA DE SEGURANÇA</h2>
+    <p class="fraco peq">Salva os canais, as pautas e a agenda num arquivo (sem a chave). Serve para levar para outro computador ou navegador.</p>
+    <div class="linha">
+      <button class="btn sec" id="btnExportar">Baixar cópia</button>
+      <label class="btn sec">Restaurar cópia<input type="file" id="arqImportar" accept=".json" hidden></label>
+    </div>
+  </div>
+</section>
+</main>
+<div id="avisos"></div>
+
+<script>
+"use strict";
+/* ====================================================================
+   FÁBRICA DE SHORTS: painel de concorrentes (Fase 1)
+   Arquivo único, sem servidor. A chave da API fica só no localStorage.
+   ==================================================================== */
+const SITE_LIBERADO = 'https://vallimjr.github.io/*';
+const COTA_DIA = 10000;
+const LOCAL = ['localhost', '127.0.0.1'].includes(location.hostname);
+const PARAMS = new URLSearchParams(location.search);
+// Endereço alternativo da API: só para teste no próprio PC (simulador). No site publicado é sempre o Google.
+const BASE = (LOCAL && PARAMS.get('api')) || 'https://www.googleapis.com/youtube/v3';
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtN = n => n == null ? '—' : Number(n).toLocaleString('pt-BR');
+const fmtCurto = n => n == null ? '—' : n >= 1e6 ? (n/1e6).toLocaleString('pt-BR',{maximumFractionDigits:1}) + ' mi' : n >= 1e3 ? (n/1e3).toLocaleString('pt-BR',{maximumFractionDigits:1}) + ' mil' : String(n);
+const fmtMult = m => m == null ? '—' : m.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1}) + 'x';
+const DIA_MS = 864e5;
+
+/* ---------- armazenamento ---------- */
+const ls = {
+  get(k, padrao) { try { const v = localStorage.getItem('fs_' + k); return v === null ? padrao : JSON.parse(v); } catch (e) { return padrao; } },
+  set(k, v) { try { localStorage.setItem('fs_' + k, JSON.stringify(v)); return true; } catch (e) { aviso('O navegador não deixou salvar os dados (memória cheia ou navegação anônima).', 'erro'); return false; } },
+  del(k) { try { localStorage.removeItem('fs_' + k); } catch (e) {} }
+};
+let canais = ls.get('canais', []);
+let pautas = ls.get('pautas', []);
+let filtros = Object.assign({formato:'shorts', periodo:'90', canal:'todos', ordem:'mult', dir:-1}, ls.get('filtros', {}));
+let filtroPauta = 'pendente';
+let semanaOffset = 0;
+
+/* ---------- avisos e diário ---------- */
+function aviso(msg, tipo = '') {
+  const d = document.createElement('div');
+  d.className = 'aviso ' + tipo; d.textContent = msg;
+  $('#avisos').appendChild(d);
+  setTimeout(() => d.remove(), tipo === 'erro' ? 12000 : 5000);
+}
+function diario(msg, tipo = '') {
+  const lista = ls.get('diario', []);
+  lista.unshift({t: Date.now(), msg, tipo});
+  ls.set('diario', lista.slice(0, 120));
+  renderDiario();
+}
+function renderDiario() {
+  const lista = ls.get('diario', []);
+  $('#diario').innerHTML = lista.length ? lista.map(i => {
+    const d = new Date(i.t);
+    return `<div class="${esc(i.tipo)}"><span>${d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})} ${d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span> ${esc(i.msg)}</div>`;
+  }).join('') : '<div class="fraco">Nada por aqui ainda.</div>';
+}
+
+/* ---------- cota ---------- */
+function diaPacifico() {
+  return new Intl.DateTimeFormat('en-CA', {timeZone:'America/Los_Angeles', year:'numeric', month:'2-digit', day:'2-digit'}).format(new Date());
+}
+function cotaUsada() { const c = ls.get('cota', {}); return c.dia === diaPacifico() ? c.usado : 0; }
+function gastarCota(n) { ls.set('cota', {dia: diaPacifico(), usado: cotaUsada() + n}); mostrarCota(); }
+function mostrarCota() {
+  const u = cotaUsada(), p = Math.min(100, u / COTA_DIA * 100);
+  $('#cotaTxt').textContent = fmtN(u) + ' / ' + fmtN(COTA_DIA);
+  $('#cotaBarra').style.width = p + '%';
+  $('#cotaBarra').style.background = p > 90 ? 'var(--vermelho)' : p > 70 ? 'var(--laranja)' : 'var(--verde)';
+}
+
+/* ---------- API do YouTube ---------- */
+class ErroYT extends Error { constructor(msg, tipo) { super(msg); this.tipo = tipo; } }
+const FATAIS = ['semchave', 'cota', 'chave', 'rede', 'bloqueio', 'desativada'];
+
+function traduzErro(status, corpo) {
+  const e = (corpo && corpo.error) || {};
+  const motivos = [...(e.errors || []).map(x => x.reason), ...(e.details || []).map(x => x.reason)].filter(Boolean);
+  const tem = (...m) => m.some(x => motivos.includes(x));
+  const msg = String(e.message || '').replace(/<[^>]+>/g, '');
+  if (tem('quotaExceeded', 'dailyLimitExceeded'))
+    return ['A cota grátis de hoje acabou (10.000 unidades). Ela volta à meia-noite do horário do Pacífico, que é 4h ou 5h da manhã em Brasília.', 'cota'];
+  if (tem('rateLimitExceeded', 'userRateLimitExceeded', 'RATE_LIMIT_EXCEEDED'))
+    return ['Muitos pedidos seguidos. Espere 1 minuto e tente de novo.', 'cota'];
+  if (tem('API_KEY_HTTP_REFERRER_BLOCKED') || /referer|referrer/i.test(msg))
+    return [`A chave está bloqueada para este endereço (${location.origin}). No Google Cloud, abra Credenciais → sua chave → "Restrições de aplicativos" → "Sites" e confira se está assim: ${SITE_LIBERADO}`, 'bloqueio'];
+  if (tem('API_KEY_SERVICE_BLOCKED'))
+    return ['A chave não tem permissão para a YouTube Data API v3. No Google Cloud, em "Restrições de API", marque YouTube Data API v3.', 'bloqueio'];
+  if (tem('accessNotConfigured', 'SERVICE_DISABLED'))
+    return ['A YouTube Data API v3 não está ativada no seu projeto do Google Cloud. Ative em: console.cloud.google.com/apis/library/youtube.googleapis.com', 'desativada'];
+  if (tem('keyInvalid', 'API_KEY_INVALID', 'keyExpired', 'API_KEY_EXPIRED') || /API key not valid|API key expired/i.test(msg))
+    return ['A chave da API não é válida. Copie de novo no Google Cloud (Credenciais) e cole na aba Configuração.', 'chave'];
+  if (tem('channelNotFound', 'playlistNotFound', 'videoNotFound', 'notFound') || status === 404)
+    return ['Não encontrado no YouTube.', 'naoencontrado'];
+  return [`O YouTube recusou o pedido (código ${status}): ${msg || 'sem detalhes'}`, 'api'];
+}
+
+async function yt(recurso, params, custo = 1) {
+  const chave = ls.get('chave', '');
+  if (!chave) throw new ErroYT('Falta a chave da API. Abra a aba Configuração e cole a sua chave.', 'semchave');
+  const q = new URLSearchParams(params); q.set('key', chave);
+  gastarCota(custo);
+  let r;
+  try { r = await fetch(`${BASE}/${recurso}?${q}`); }
+  catch (e) { throw new ErroYT('Não consegui falar com o YouTube. Confira a internet e tente de novo. Se continuar, algum bloqueio (antivírus, rede da empresa) pode estar impedindo o acesso a googleapis.com.', 'rede'); }
+  let corpo = null; try { corpo = await r.json(); } catch (e) {}
+  if (!r.ok) { const [m, t] = traduzErro(r.status, corpo); throw new ErroYT(m, t); }
+  return corpo || {};
+}
+
+/* ---------- canais ---------- */
+function lerEntradaCanal(txt) {
+  txt = String(txt || '').trim().replace(/^["'<]+|[>"']+$/g, '');
+  if (!txt) return null;
+  let m;
+  if ((m = txt.match(/channel\/(UC[\w-]{20,})/i))) return {id: m[1]};
+  if (/^UC[\w-]{20,}$/.test(txt)) return {id: txt};
+  if ((m = txt.match(/youtube\.com\/@([^\/?#\s]+)/i))) return {handle: '@' + decodeURIComponent(m[1])};
+  if ((m = txt.match(/youtube\.com\/user\/([^\/?#\s]+)/i))) return {usuario: decodeURIComponent(m[1])};
+  if ((m = txt.match(/youtube\.com\/c\/([^\/?#\s]+)/i))) return {handle: '@' + decodeURIComponent(m[1])};
+  if (/^https?:|youtube\.com|youtu\.be/i.test(txt)) return null;
+  if ((m = txt.match(/^@?([\p{L}\p{N}._\-·]{3,})$/u))) return {handle: '@' + m[1]};
+  return null;
+}
+function resumoCanal(c) {
+  const s = c.snippet || {}, st = c.statistics || {};
+  return {
+    id: c.id, titulo: s.title || c.id, handle: s.customUrl || '',
+    thumb: (s.thumbnails && (s.thumbnails.default || s.thumbnails.medium || {}).url) || '',
+    uploads: (c.contentDetails && c.contentDetails.relatedPlaylists && c.contentDetails.relatedPlaylists.uploads) || ('UU' + c.id.slice(2)),
+    inscritos: st.hiddenSubscriberCount ? null : (st.subscriberCount != null ? Number(st.subscriberCount) : null),
+    totalVideos: st.videoCount != null ? Number(st.videoCount) : null
+  };
+}
+const nomeCanal = c => c.titulo + (c.handle ? ' (' + c.handle + ')' : '');
+const noRadar = id => canais.some(c => c.id === id);
+
+async function buscarCanal(ent) {
+  const p = {part: 'snippet,contentDetails,statistics'};
+  if (ent.id) p.id = ent.id; else if (ent.usuario) p.forUsername = ent.usuario; else p.forHandle = ent.handle;
+  const r = await yt('channels', p, 1);
+  const c = r.items && r.items[0];
+  if (!c) throw new ErroYT(`Canal não encontrado: ${ent.handle || ent.usuario || ent.id}. Confira se o @ está escrito certo.`, 'naoencontrado');
+  return resumoCanal(c);
+}
+function guardarCanal(c) {
+  if (noRadar(c.id)) return false;
+  canais.push(c); ls.set('canais', canais); return true;
+}
+async function adicionarCanais(texto) {
+  const partes = String(texto).split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+  const res = {adicionados: [], repetidos: [], erros: []};
+  for (const p of partes) {
+    const ent = lerEntradaCanal(p);
+    if (!ent) { res.erros.push(`"${p}" não parece um canal. Use @handle ou o link do canal.`); continue; }
+    try {
+      const c = await buscarCanal(ent);
+      if (guardarCanal(c)) { res.adicionados.push(c); diario(`Canal adicionado ao radar: ${nomeCanal(c)}`, 'ok'); }
+      else res.repetidos.push(c.titulo);
+    } catch (e) {
+      res.erros.push(e.message);
+      if (FATAIS.includes(e.tipo)) break;
+    }
+  }
+  renderTudo();
+  return res;
+}
+function removerCanal(id) {
+  const c = canais.find(x => x.id === id); if (!c) return;
+  canais = canais.filter(x => x.id !== id); ls.set('canais', canais); ls.del('videos_' + id);
+  if (filtros.canal === id) setFiltro('canal', 'todos');
+  diario(`Canal removido do radar: ${c.titulo}`);
+  renderTudo();
+}
+
+/* ---------- vídeos ---------- */
+function durSeg(iso) {
+  const m = String(iso || '').match(/P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?/);
+  if (!m) return 0;
+  return (+m[1] || 0) * 86400 + (+m[2] || 0) * 3600 + (+m[3] || 0) * 60 + Math.round(+m[4] || 0);
+}
+const fmtDur = s => s >= 3600 ? `${Math.floor(s/3600)}:${String(Math.floor(s%3600/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}` : `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+
+async function carregarVideos(canal) {
+  let ids = [];
+  try {
+    const pl = await yt('playlistItems', {part: 'contentDetails', playlistId: canal.uploads, maxResults: 50}, 1);
+    ids = (pl.items || []).map(i => i.contentDetails && i.contentDetails.videoId).filter(Boolean);
+  } catch (e) { if (e.tipo !== 'naoencontrado') throw e; }
+  let videos = [];
+  if (ids.length) {
+    const v = await yt('videos', {part: 'snippet,contentDetails,statistics', id: ids.join(','), maxResults: 50}, 1);
+    videos = (v.items || [])
+      .filter(x => !x.snippet || !x.snippet.liveBroadcastContent || x.snippet.liveBroadcastContent === 'none')
+      .map(x => ({
+        id: x.id, t: x.snippet.title, pub: x.snippet.publishedAt,
+        dur: durSeg(x.contentDetails && x.contentDetails.duration),
+        views: x.statistics && x.statistics.viewCount != null ? Number(x.statistics.viewCount) : null
+      }))
+      .filter(x => x.dur > 0);
+  }
+  ls.set('videos_' + canal.id, {quando: Date.now(), videos});
+  return videos;
+}
+
+function mediana(a) {
+  if (!a.length) return null;
+  const s = [...a].sort((x, y) => x - y), m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+function analisar() {
+  const agora = Date.now(), linhas = [];
+  for (const c of canais) {
+    const cache = ls.get('videos_' + c.id, null); if (!cache) continue;
+    const vs = cache.videos.filter(v => v.views != null);
+    for (const fmt of ['shorts', 'longos']) {
+      const doFmt = vs.filter(v => (v.dur <= 180) === (fmt === 'shorts'));
+      const base = doFmt.filter(v => agora - Date.parse(v.pub) >= 3 * DIA_MS).map(v => v.views);
+      const med = mediana(base);
+      for (const v of doFmt) {
+        const idade = (agora - Date.parse(v.pub)) / DIA_MS;
+        linhas.push({...v, canal: c, fmt, idade, novo: idade < 3, med, mult: med > 0 ? v.views / med : null});
+      }
+    }
+  }
+  return linhas;
+}
+function filtrar(linhas) {
+  const f = filtros;
+  let r = linhas.filter(l => l.fmt === f.formato && (f.canal === 'todos' || l.canal.id === f.canal) &&
+    (f.periodo === 'tudo' || l.idade <= Number(f.periodo)));
+  const chave = {mult: l => l.mult, views: l => l.views, data: l => Date.parse(l.pub)}[f.ordem];
+  r.sort((a, b) => {
+    const x = chave(a), y = chave(b);
+    if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
+    return (x - y) * f.dir;
+  });
+  return r;
+}
+
+let ocupado = false;
+async function atualizarRadar(forcar = false) {
+  if (ocupado) return;
+  if (!canais.length) { aviso('Adicione canais na aba Canais primeiro.', 'erro'); return; }
+  ocupado = true; botoesOcupado(true);
+  let lidos = 0, cache = 0, falhas = 0, parou = null;
+  diario(`Radar: começando a leitura de ${canais.length} canais.`);
+  for (let i = 0; i < canais.length; i++) {
+    const c = canais[i], antigo = ls.get('videos_' + c.id, null);
+    if (!forcar && antigo && Date.now() - antigo.quando < 6 * 3600e3) { cache++; continue; }
+    setAgente('radar', 'trabalhando', `Lendo ${c.titulo} (${i + 1}/${canais.length})`);
+    try { const v = await carregarVideos(c); lidos++; diario(`Radar: ${c.titulo}: ${v.length} vídeos lidos.`); }
+    catch (e) {
+      falhas++; diario(`Radar: ${c.titulo}: ${e.message}`, 'erro');
+      if (FATAIS.includes(e.tipo)) { parou = e; break; }
+    }
+  }
+  ocupado = false; botoesOcupado(false);
+  const total = analisar().length;
+  if (parou) { setAgente('radar', 'erro', 'Parou: ' + parou.message.split('. ')[0]); aviso(parou.message, 'erro'); }
+  else if (falhas) setAgente('radar', 'erro', `${falhas} canal(is) com erro; veja o diário`);
+  else setAgente('radar', 'ok', `Pronto: ${fmtN(total)} vídeos`);
+  diario(`Radar: fim. ${lidos} lidos agora, ${cache} já estavam lidos (menos de 6 h), ${falhas} com erro.`, falhas ? 'erro' : 'ok');
+  renderTudo();
+}
+function botoesOcupado(s) { ['#btnRadar', '#btnRadarForcar', '#btnRadarFab'].forEach(b => $(b).disabled = s); }
+
+/* ---------- descobrir ---------- */
+function cartaoCanal(c, extra = '') {
+  const ja = noRadar(c.id);
+  return `<div class="cartao">
+    <div class="topo"><img src="${esc(c.thumb)}" alt="" loading="lazy"><div><div class="t">${esc(c.titulo)}</div>
+    <div class="fraco peq">${esc(c.handle)} · ${c.inscritos == null ? 'inscritos ocultos' : fmtCurto(c.inscritos) + ' inscritos'}</div></div></div>
+    ${extra}
+    <div class="linha"><button class="btn mini ${ja ? 'sec' : 'ok'}" data-add="${esc(c.id)}" ${ja ? 'disabled' : ''}>${ja ? 'Já no radar' : 'Adicionar ao radar'}</button>
+    <a class="peq" href="https://www.youtube.com/channel/${esc(c.id)}" target="_blank" rel="noopener">abrir canal</a></div>
+  </div>`;
+}
+const achados = new Map();
+async function detalharCanais(ids) {
+  const out = [];
+  for (let i = 0; i < ids.length; i += 50) {
+    const r = await yt('channels', {part: 'snippet,contentDetails,statistics', id: ids.slice(i, i + 50).join(','), maxResults: 50}, 1);
+    for (const it of r.items || []) { const c = resumoCanal(it); achados.set(c.id, c); out.push(c); }
+  }
+  return out;
+}
+async function buscarTema(tema, idioma) {
+  tema = String(tema || '').trim();
+  if (!tema) { aviso('Escreva um tema para buscar.', 'erro'); return []; }
+  setAgente('pauta', 'trabalhando', `Buscando canais: "${tema}"`);
+  try {
+    const r = await yt('search', {part: 'snippet', type: 'channel', q: tema, maxResults: 25,
+      relevanceLanguage: idioma, regionCode: idioma === 'pt' ? 'BR' : 'US'}, 100);
+    const ids = [...new Set((r.items || []).map(i => i.id && i.id.channelId).filter(Boolean))];
+    const lista = ids.length ? await detalharCanais(ids) : [];
+    lista.sort((a, b) => (b.inscritos || 0) - (a.inscritos || 0));
+    $('#resTema').innerHTML = lista.length ? lista.map(c => cartaoCanal(c)).join('') : '<p class="fraco">Nenhum canal encontrado.</p>';
+    diario(`Descobrir: busca "${tema}" (${idioma}): ${lista.length} canais.`);
+    setAgente('pauta', 'ok', `Busca: ${lista.length} canais`);
+    return lista;
+  } catch (e) { aviso(e.message, 'erro'); diario('Descobrir: ' + e.message, 'erro'); setAgente('pauta', 'erro', 'Erro na busca'); return []; }
+}
+async function buscarIndicados() {
+  if (!canais.length) { aviso('Adicione canais ao radar primeiro.', 'erro'); return []; }
+  setAgente('pauta', 'trabalhando', 'Lendo indicações dos concorrentes');
+  const cont = new Map();
+  try {
+    for (const c of canais) {
+      let r;
+      try { r = await yt('channelSections', {part: 'contentDetails', channelId: c.id}, 1); }
+      catch (e) { if (FATAIS.includes(e.tipo)) throw e; continue; }
+      const vistos = new Set();
+      for (const s of r.items || []) for (const id of (s.contentDetails && s.contentDetails.channels) || []) {
+        if (id === c.id || noRadar(id) || vistos.has(id)) continue;
+        vistos.add(id);
+        if (!cont.has(id)) cont.set(id, []);
+        cont.get(id).push(c.titulo);
+      }
+    }
+    const ordem = [...cont.entries()].sort((a, b) => b[1].length - a[1].length).slice(0, 50);
+    const det = ordem.length ? await detalharCanais(ordem.map(o => o[0])) : [];
+    const porId = new Map(det.map(c => [c.id, c]));
+    const lista = ordem.filter(o => porId.has(o[0])).map(o => ({...porId.get(o[0]), citadoPor: o[1]}));
+    $('#resIndicados').innerHTML = lista.length
+      ? lista.map(c => cartaoCanal(c, `<div class="peq"><b style="color:var(--amarelo)">Citado por ${c.citadoPor.length}</b> <span class="fraco">(${esc(c.citadoPor.join(', '))})</span></div>`)).join('')
+      : '<p class="fraco">Os canais do radar não indicam outros canais (ou todos os indicados já estão no radar).</p>';
+    diario(`Descobrir: ${lista.length} canais indicados pelos concorrentes.`);
+    setAgente('pauta', 'ok', `${lista.length} indicados`);
+    return lista;
+  } catch (e) { aviso(e.message, 'erro'); diario('Descobrir: ' + e.message, 'erro'); setAgente('pauta', 'erro', 'Erro nas indicações'); return []; }
+}
+
+/* ---------- pautas ---------- */
+function criarPauta(videoId) {
+  const l = analisar().find(x => x.id === videoId); if (!l) return;
+  if (pautas.some(p => p.id === videoId)) { aviso('Esse vídeo já está nas pautas.'); return; }
+  pautas.unshift({id: l.id, titulo: l.t, canal: l.canal.titulo, canalId: l.canal.id, mult: l.mult, views: l.views,
+    fmt: l.fmt, status: 'pendente', nota: '', dia: '', criada: Date.now()});
+  ls.set('pautas', pautas);
+  diario(`Nova pauta para aprovar: "${l.t}" (${fmtMult(l.mult)})`, 'ok');
+  aviso('Pauta enviada para a mesa "Você".', 'ok');
+  renderTudo();
+}
+function mudarPauta(id, campos) {
+  const p = pautas.find(x => x.id === id); if (!p) return;
+  Object.assign(p, campos); ls.set('pautas', pautas);
+  if (campos.status === 'aprovada') diario(`Pauta aprovada: "${p.titulo}"`, 'ok');
+  if (campos.status === 'revisar') diario(`Pauta para revisar: "${p.titulo}"${p.nota ? ' (' + p.nota + ')' : ''}`);
+  if ('dia' in campos && campos.dia) diario(`Pauta agendada para ${new Date(campos.dia + 'T12:00').toLocaleDateString('pt-BR')}: "${p.titulo}"`);
+  renderTudo();
+}
+function removerPauta(id) { pautas = pautas.filter(p => p.id !== id); ls.set('pautas', pautas); renderTudo(); }
+function promptTitulos(p) {
+  const est = ls.get('estilo', {exemplos: '', idioma: 'pt'});
+  const ex = String(est.exemplos || '').split('\n').map(s => s.trim()).filter(Boolean);
+  const en = est.idioma === 'en';
+  return [
+    'Você é especialista em títulos de YouTube Shorts.',
+    '',
+    'Vídeo de referência que foi muito acima da média (outlier):',
+    `- Título: "${p.titulo}"`,
+    `- Canal: ${p.canal}`,
+    `- Views: ${fmtN(p.views)} (${fmtMult(p.mult)} a mediana do próprio canal)`,
+    `- Formato: ${p.fmt === 'shorts' ? 'Short' : 'vídeo longo'}`,
+    `- Link: https://youtu.be/${p.id}`,
+    p.nota ? `- Minha observação: ${p.nota}` : null,
+    ex.length ? '\nTítulos reais do MEU canal (copie o estilo, não o assunto):\n' + ex.map(t => '- ' + t).join('\n') : null,
+    '',
+    `Tarefa: crie 10 títulos para um Short do MEU canal sobre o mesmo tema, adaptando a ideia sem copiar o título original.`,
+    'Regras:',
+    `- escreva em ${en ? 'inglês' : 'português do Brasil'};`,
+    '- no máximo 55 caracteres cada;',
+    '- só 1 ou 2 palavras em CAIXA ALTA por título;',
+    '- nada de promessa falsa nem números que não estejam no vídeo.',
+    'Para cada título, explique em uma linha por que ele pode funcionar. No fim, diga qual é o seu favorito.'
+  ].filter(x => x !== null).join('\n');
+}
+async function copiarTexto(txt) {
+  try { await navigator.clipboard.writeText(txt); return true; }
+  catch (e) {
+    const t = document.createElement('textarea'); t.value = txt; t.style.position = 'fixed'; t.style.opacity = '0';
+    document.body.appendChild(t); t.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch (e2) {}
+    t.remove(); return ok;
+  }
+}
+
+/* ---------- agentes (mesas da fábrica) ---------- */
+const AGENTES = [
+  {k: 'radar',   nome: 'RADAR',   cor: '#5cc8ff', cabelo: '#3a2a1a', pele: '#f5c9a0'},
+  {k: 'pauta',   nome: 'PAUTA',   cor: '#b08cff', cabelo: '#111111', pele: '#c98e62'},
+  {k: 'roteiro', nome: 'ROTEIRO', cor: '#ff7ad9', cabelo: '#d9a441', pele: '#f2d2b6'},
+  {k: 'cortes',  nome: 'CORTES',  cor: '#ffa04d', cabelo: '#6b3b1f', pele: '#8d5a3b'},
+  {k: 'titulos', nome: 'TITULOS', cor: '#5ee06b', cabelo: '#222244', pele: '#f5c9a0'},
+  {k: 'agenda',  nome: 'AGENDA',  cor: '#ff5c6c', cabelo: '#b5b5b5', pele: '#e0b08a'}
+];
+const estadoAgente = {};
+function setAgente(k, estado, txt) { estadoAgente[k] = {estado, txt}; renderFabrica(); }
+
+const SPRITE = [
+  '....................',
+  '........kkkkkk......',
+  '.......khhhhhhk.....',
+  '......khhhhhhhhk....',
+  '......khsssssshk....',
+  '......kskssssksk....',
+  '......kssssssssk....',
+  '.kkkkk.ksskkssk.....',
+  '.kgggk..kssssk......',
+  '.kgggk.kkcccckk.....',
+  '.kgggkkcccccccck....',
+  '.kkkkkcccccccccck...',
+  '...k..kcckcccckcck..',
+  'dddddddddddddddddddd',
+  'DDDDDDDDDDDDDDDDDDDD',
+  '.D................D.',
+  '.D................D.',
+  '.D................D.'
+];
+function sprite(a) {
+  const cores = {k: '#0b0b16', h: a.cabelo, s: a.pele, c: a.cor, g: a.cor, d: '#b07a3c', D: '#7a4f22'};
+  let r = '';
+  SPRITE.forEach((linha, y) => [...linha].forEach((ch, x) => {
+    if (cores[ch]) r += `<rect x="${x}" y="${y}" width="1.02" height="1.02" fill="${cores[ch]}"${ch === 'g' ? ' class="g"' : ''}/>`;
+  }));
+  return `<svg viewBox="0 0 20 18" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+}
+function estadosPadrao() {
+  const linhas = analisar();
+  const pend = pautas.filter(p => p.status === 'pendente').length;
+  const aprov = pautas.filter(p => p.status === 'aprovada');
+  const semDia = aprov.filter(p => !p.dia).length;
+  const ini = inicioSemana(0), fim = new Date(ini.getTime() + 7 * DIA_MS);
+  const naSemana = aprov.filter(p => p.dia && new Date(p.dia + 'T12:00') >= ini && new Date(p.dia + 'T12:00') < fim).length;
+  return {
+    radar: canais.length ? (linhas.length ? {estado: 'ok', txt: `${fmtN(linhas.length)} vídeos de ${canais.length} canais`} : {estado: 'espera', txt: 'Clique em Atualizar radar'}) : {estado: 'espera', txt: 'Sem canais: adicione na aba Canais'},
+    pauta: {estado: pend ? 'trabalhando' : 'espera', txt: pend ? `${pend} pauta(s) esperando você` : 'Use "+ Pauta" no Radar'},
+    roteiro: {estado: 'espera', txt: 'Fase 2: roda no seu PC'},
+    cortes: {estado: 'espera', txt: 'Fase 2: roda no seu PC'},
+    titulos: {estado: aprov.length ? 'ok' : 'espera', txt: aprov.length ? `${aprov.length} aprovada(s): use Copiar prompt` : 'Aguardando pautas aprovadas'},
+    agenda: {estado: naSemana ? 'ok' : 'espera', txt: `${naSemana} nesta semana${semDia ? `, ${semDia} sem dia` : ''}`}
+  };
+}
+function renderFabrica() {
+  const pad = estadosPadrao();
+  const pend = pautas.filter(p => p.status === 'pendente').length;
+  $('#chao').innerHTML = AGENTES.map(a => {
+    const e = (estadoAgente[a.k] && (estadoAgente[a.k].estado === 'trabalhando' || estadoAgente[a.k].estado === 'erro')) ? estadoAgente[a.k] : pad[a.k];
+    return `<div class="mesa ${e.estado}" data-agente="${a.k}">${sprite(a)}<div class="nome pix" style="color:${a.cor}">${a.nome}</div><div class="st"><span class="led"></span>${esc(e.txt)}</div></div>`;
+  }).join('') +
+  `<div class="mesa voce ${pend ? 'trabalhando' : 'ok'}" id="mesaVoce" title="Abrir pautas">${sprite({cor: '#ffc83d', cabelo: '#2a1a0a', pele: '#f0c39a'})}
+   <div class="nome pix">VOCÊ: APROVAÇÃO</div><div class="st"><span class="led"></span>${pend ? `<b>${pend}</b> pauta(s) para aprovar: clique aqui` : 'Nada pendente'}</div></div>`;
+  $('#boasVindas').style.display = ls.get('chave', '') && canais.length ? 'none' : 'block';
+  const precisa = canais.filter(c => { const v = ls.get('videos_' + c.id, null); return !v || Date.now() - v.quando >= 6 * 3600e3; }).length;
+  $('#estimativa').textContent = canais.length ? `Custo estimado: ${precisa * 2} unidades (${precisa} canal(is) para ler; os lidos há menos de 6 h não gastam).` : '';
+}
+
+/* ---------- renderização ---------- */
+function setFiltro(k, v) { filtros[k] = v; ls.set('filtros', filtros); renderRadar(); }
+function renderRadar() {
+  $$('#fFormato button').forEach(b => b.classList.toggle('ativo', b.dataset.v === filtros.formato));
+  $$('#fPeriodo button').forEach(b => b.classList.toggle('ativo', b.dataset.v === filtros.periodo));
+  $('#fCanal').innerHTML = '<option value="todos">Todos os canais</option>' + canais.map(c => `<option value="${esc(c.id)}">${esc(c.titulo)}</option>`).join('');
+  $('#fCanal').value = noRadar(filtros.canal) ? filtros.canal : 'todos';
+  $$('th.ord').forEach(th => {
+    const base = {mult: 'Multiplicador', views: 'Views', data: 'Data'}[th.dataset.o];
+    th.textContent = base + (filtros.ordem === th.dataset.o ? (filtros.dir < 0 ? ' ▼' : ' ▲') : '');
+  });
+  const linhas = filtrar(analisar());
+  const mults = linhas.filter(l => l.mult != null).map(l => l.mult);
+  $('#iTotal').textContent = fmtN(linhas.length);
+  $('#iMaior').textContent = mults.length ? fmtMult(Math.max(...mults)) : '—';
+  $('#iAcima').textContent = fmtN(mults.filter(m => m > 2).length);
+  $('#iCanais').textContent = fmtN(canais.length);
+  $('#tRadar').innerHTML = linhas.length ? linhas.slice(0, 500).map(l => {
+    const cls = l.mult >= 10 ? 'm10' : l.mult >= 5 ? 'm5' : l.mult >= 2 ? 'm2' : '';
+    const jaPauta = pautas.some(p => p.id === l.id);
+    return `<tr data-id="${esc(l.id)}">
+      <td><a href="https://youtu.be/${esc(l.id)}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${esc(l.id)}/mqdefault.jpg" alt="" loading="lazy"></a></td>
+      <td><a href="https://youtu.be/${esc(l.id)}" target="_blank" rel="noopener">${esc(l.t)}</a>${l.novo ? '<span class="tag">NOVO</span>' : ''}<div class="fraco peq">${fmtDur(l.dur)}${l.fmt === 'shorts' ? '<span class="tag s">SHORT</span>' : ''}</div></td>
+      <td class="peq">${esc(l.canal.titulo)}<div class="fraco">mediana ${fmtCurto(l.med)}</div></td>
+      <td><span class="mult ${cls}">${fmtMult(l.mult)}</span></td>
+      <td class="num">${fmtN(l.views)}</td>
+      <td class="peq">${new Date(l.pub).toLocaleDateString('pt-BR')}<div class="fraco">${l.idade < 1 ? 'hoje' : (Math.floor(l.idade) === 1 ? '1 dia' : Math.floor(l.idade) + ' dias')}</div></td>
+      <td><button class="btn mini ${jaPauta ? 'sec' : 'ouro'}" data-pauta="${esc(l.id)}" ${jaPauta ? 'disabled' : ''}>${jaPauta ? 'Na pauta' : '+ Pauta'}</button></td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="7" class="fraco" style="padding:20px">${canais.length ? 'Nenhum vídeo com esses filtros. Troque o filtro ou clique em Atualizar radar.' : 'Adicione canais na aba Canais.'}</td></tr>`;
+}
+function renderCanais() {
+  $('#listaCanais').innerHTML = canais.length ? canais.map(c => {
+    const v = ls.get('videos_' + c.id, null);
+    const info = v ? `${v.videos.length} vídeos lidos · ${new Date(v.quando).toLocaleString('pt-BR', {dateStyle: 'short', timeStyle: 'short'})}` : 'ainda não lido';
+    return `<div class="cartao"><div class="topo"><img src="${esc(c.thumb)}" alt="" loading="lazy"><div><div class="t">${esc(c.titulo)}</div>
+      <div class="fraco peq">${esc(c.handle)} · ${c.inscritos == null ? 'inscritos ocultos' : fmtCurto(c.inscritos) + ' inscritos'}</div></div></div>
+      <div class="fraco peq">${info}</div>
+      <div class="linha"><button class="btn mini perigo" data-remover="${esc(c.id)}">Remover</button>
+      <a class="peq" href="https://www.youtube.com/channel/${esc(c.id)}" target="_blank" rel="noopener">abrir canal</a></div></div>`;
+  }).join('') : '<p class="fraco">Nenhum canal ainda.</p>';
+}
+function renderPautas() {
+  $$('#fPautas button').forEach(b => {
+    const n = pautas.filter(p => p.status === b.dataset.v).length;
+    b.classList.toggle('ativo', b.dataset.v === filtroPauta);
+    b.textContent = {pendente: 'Aguardando', aprovada: 'Aprovadas', revisar: 'Revisar'}[b.dataset.v] + ` (${n})`;
+  });
+  const lista = pautas.filter(p => p.status === filtroPauta);
+  $('#listaPautas').innerHTML = lista.length ? lista.map(p => `<div class="cartao" data-p="${esc(p.id)}">
+    <img class="capa" src="https://i.ytimg.com/vi/${esc(p.id)}/mqdefault.jpg" alt="" loading="lazy">
+    <div class="t"><b>${esc(p.titulo)}</b></div>
+    <div class="peq fraco">${esc(p.canal)} · ${fmtN(p.views)} views · <span class="mult ${p.mult >= 5 ? 'm5' : p.mult >= 2 ? 'm2' : ''}" style="font-size:18px">${fmtMult(p.mult)}</span></div>
+    ${p.nota ? `<div class="peq">📝 ${esc(p.nota)}</div>` : ''}
+    <div class="linha">
+      ${p.status !== 'aprovada' ? `<button class="btn mini ok" data-acao="aprovar">Aprovar</button>` : ''}
+      ${p.status !== 'revisar' ? `<button class="btn mini sec" data-acao="revisar">Revisar</button>` : ''}
+      <button class="btn mini" data-acao="prompt">Copiar prompt</button>
+      <button class="btn mini perigo" data-acao="remover">Remover</button>
+    </div>
+    ${p.status === 'aprovada' ? `<label class="peq">Dia na agenda: <input type="date" data-acao="dia" value="${esc(p.dia)}"></label>` : ''}
+    <div class="notaBox" hidden><textarea rows="2" placeholder="O que precisa mudar?">${esc(p.nota)}</textarea>
+      <button class="btn mini ok" data-acao="salvarNota">Salvar e mover para Revisar</button></div>
+  </div>`).join('') : '<p class="fraco">Nada aqui.</p>';
+}
+function inicioSemana(off) {
+  const d = new Date(); d.setHours(0, 0, 0, 0);
+  const dow = (d.getDay() + 6) % 7; // segunda = 0
+  d.setDate(d.getDate() - dow + off * 7); return d;
+}
+const isoDia = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+function renderAgenda() {
+  const ini = inicioSemana(semanaOffset), hoje = isoDia(new Date());
+  const nomes = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'];
+  const fim = new Date(ini.getTime() + 6 * DIA_MS);
+  $('#semTitulo').textContent = `${ini.toLocaleDateString('pt-BR')} a ${fim.toLocaleDateString('pt-BR')}`;
+  const semDia = pautas.filter(p => p.status === 'aprovada' && !p.dia).length;
+  $('#semDia').textContent = semDia ? `${semDia} pauta(s) aprovada(s) ainda sem dia.` : '';
+  $('#agenda').innerHTML = nomes.map((n, i) => {
+    const d = new Date(ini); d.setDate(ini.getDate() + i); const iso = isoDia(d);
+    const itens = pautas.filter(p => p.status === 'aprovada' && p.dia === iso);
+    return `<div class="dia ${iso === hoje ? 'hoje' : ''}"><h3>${n} ${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}</h3>
+      ${itens.map(p => `<div class="item">${esc(p.titulo)}<div class="fraco">${esc(p.canal)} · ${fmtMult(p.mult)}</div></div>`).join('') || '<div class="fraco peq">—</div>'}</div>`;
+  }).join('');
+}
+function renderConfig() {
+  const tem = !!ls.get('chave', '');
+  $('#statusChave').textContent = tem ? '✔ Há uma chave salva neste navegador.' : 'Nenhuma chave salva ainda.';
+  const est = ls.get('estilo', {exemplos: '', idioma: 'pt'});
+  $('#exemplos').value = est.exemplos || ''; $('#idiomaTit').value = est.idioma || 'pt';
+}
+function renderTudo() { renderFabrica(); renderRadar(); renderCanais(); renderPautas(); renderAgenda(); mostrarCota(); }
+
+function mostrarAba(nome) {
+  $$('#menu button').forEach(b => b.classList.toggle('ativo', b.dataset.aba === nome));
+  $$('.aba').forEach(a => a.classList.toggle('ativa', a.id === 'aba-' + nome));
+  if (nome === 'config') renderConfig();
+  try { history.replaceState(null, '', '#' + nome); } catch (e) {}
+}
+
+/* ---------- eventos ---------- */
+$('#menu').addEventListener('click', e => { const b = e.target.closest('button'); if (b) mostrarAba(b.dataset.aba); });
+$('#btnRadar').onclick = () => atualizarRadar(false);
+$('#btnRadarFab').onclick = () => atualizarRadar(false);
+$('#btnRadarForcar').onclick = () => atualizarRadar(true);
+$('#fFormato').onclick = e => { const b = e.target.closest('button'); if (b) setFiltro('formato', b.dataset.v); };
+$('#fPeriodo').onclick = e => { const b = e.target.closest('button'); if (b) setFiltro('periodo', b.dataset.v); };
+$('#fCanal').onchange = e => setFiltro('canal', e.target.value);
+$$('th.ord').forEach(th => th.onclick = () => {
+  if (filtros.ordem === th.dataset.o) filtros.dir *= -1; else { filtros.ordem = th.dataset.o; filtros.dir = -1; }
+  ls.set('filtros', filtros); renderRadar();
+});
+$('#tRadar').onclick = e => { const b = e.target.closest('[data-pauta]'); if (b) criarPauta(b.dataset.pauta); };
+$('#btnAddCanal').onclick = async () => {
+  const b = $('#btnAddCanal'); b.disabled = true; b.textContent = 'Adicionando...';
+  const r = await adicionarCanais($('#novoCanal').value);
+  b.disabled = false; b.textContent = 'Adicionar';
+  if (r.adicionados.length) { aviso(`${r.adicionados.length} canal(is) adicionado(s). Agora clique em Atualizar radar.`, 'ok'); $('#novoCanal').value = ''; }
+  if (r.repetidos.length) aviso('Já estavam no radar: ' + r.repetidos.join(', '));
+  r.erros.forEach(m => aviso(m, 'erro'));
+};
+$('#listaCanais').onclick = e => {
+  const b = e.target.closest('[data-remover]'); if (!b) return;
+  const c = canais.find(x => x.id === b.dataset.remover);
+  if (c && confirm(`Remover "${c.titulo}" do radar?`)) removerCanal(c.id);
+};
+async function addDeAchados(e) {
+  const b = e.target.closest('[data-add]'); if (!b) return;
+  const c = achados.get(b.dataset.add); if (!c) return;
+  if (guardarCanal(c)) { diario(`Canal adicionado ao radar: ${nomeCanal(c)}`, 'ok'); aviso(`${c.titulo} entrou no radar.`, 'ok'); }
+  $$(`[data-add="${CSS.escape(c.id)}"]`).forEach(x => { x.disabled = true; x.textContent = 'Já no radar'; x.className = 'btn mini sec'; });
+  renderTudo();
+}
+$('#resTema').onclick = addDeAchados; $('#resIndicados').onclick = addDeAchados;
+$('#btnBuscarTema').onclick = async () => { const b = $('#btnBuscarTema'); b.disabled = true; await buscarTema($('#tema').value, $('#temaIdioma').value); b.disabled = false; };
+$('#tema').onkeydown = e => { if (e.key === 'Enter') $('#btnBuscarTema').click(); };
+$('#btnIndicados').onclick = async () => { const b = $('#btnIndicados'); b.disabled = true; await buscarIndicados(); b.disabled = false; };
+$('#fPautas').onclick = e => { const b = e.target.closest('button'); if (b) { filtroPauta = b.dataset.v; renderPautas(); } };
+$('#listaPautas').addEventListener('click', async e => {
+  const b = e.target.closest('button[data-acao]'); if (!b) return;
+  const card = b.closest('[data-p]'), id = card.dataset.p, p = pautas.find(x => x.id === id);
+  const a = b.dataset.acao;
+  if (a === 'aprovar') mudarPauta(id, {status: 'aprovada'});
+  else if (a === 'revisar') { const box = card.querySelector('.notaBox'); box.hidden = false; box.querySelector('textarea').focus(); }
+  else if (a === 'salvarNota') mudarPauta(id, {status: 'revisar', nota: card.querySelector('.notaBox textarea').value.trim()});
+  else if (a === 'remover') { if (confirm('Remover esta pauta?')) removerPauta(id); }
+  else if (a === 'prompt') { const ok = await copiarTexto(promptTitulos(p)); aviso(ok ? 'Prompt copiado! Cole no Claude (Ctrl+V).' : 'Não consegui copiar automaticamente.', ok ? 'ok' : 'erro'); if (ok) diario(`Prompt de títulos copiado: "${p.titulo}"`); }
+});
+$('#listaPautas').addEventListener('change', e => { const i = e.target.closest('input[data-acao="dia"]'); if (i) mudarPauta(i.closest('[data-p]').dataset.p, {dia: i.value}); });
+$('#semAnt').onclick = () => { semanaOffset--; renderAgenda(); };
+$('#semProx').onclick = () => { semanaOffset++; renderAgenda(); };
+$('#btnLimparDiario').onclick = () => { if (confirm('Apagar o diário de atividades?')) { ls.set('diario', []); renderDiario(); } };
+$('#chao').addEventListener('click', e => {
+  if (e.target.closest('#mesaVoce')) { filtroPauta = 'pendente'; renderPautas(); mostrarAba('pautas'); return; }
+  const m = e.target.closest('[data-agente]'); if (!m) return;
+  const destino = {radar: 'radar', pauta: 'descobrir', titulos: 'pautas', agenda: 'agenda'}[m.dataset.agente];
+  if (destino) mostrarAba(destino);
+});
+
+/* configuração */
+$('#btnVerChave').onclick = () => { const i = $('#chave'); i.type = i.type === 'password' ? 'text' : 'password'; $('#btnVerChave').textContent = i.type === 'password' ? 'Mostrar' : 'Esconder'; };
+function salvarChave() {
+  const v = $('#chave').value.trim();
+  if (!v) { aviso('Cole a chave no campo antes de salvar.', 'erro'); return false; }
+  if (!/^[\w-]{20,}$/.test(v)) { aviso('Isso não parece uma chave (ela começa com AIza e não tem espaços).', 'erro'); return false; }
+  ls.set('chave', v); $('#chave').value = ''; renderConfig(); renderFabrica();
+  diario('Chave da API salva neste navegador.', 'ok'); aviso('Chave salva!', 'ok'); return true;
+}
+$('#btnSalvarChave').onclick = salvarChave;
+async function testarChave() {
+  if ($('#chave').value.trim() && !salvarChave()) return false;
+  try {
+    const r = await yt('channels', {part: 'snippet', forHandle: '@YouTube'}, 1);
+    const ok = !!(r.items && r.items.length);
+    $('#statusChave').textContent = ok ? '✔ A chave funciona! (teste lido: canal ' + r.items[0].snippet.title + ')' : 'A chave respondeu, mas sem dados.';
+    aviso(ok ? 'A chave funciona!' : 'Resposta vazia do YouTube.', ok ? 'ok' : 'erro');
+    diario(ok ? 'Teste da chave: funcionando.' : 'Teste da chave: resposta vazia.', ok ? 'ok' : 'erro');
+    return ok;
+  } catch (e) { $('#statusChave').textContent = '✖ ' + e.message; aviso(e.message, 'erro'); diario('Teste da chave: ' + e.message, 'erro'); return false; }
+}
+$('#btnTestarChave').onclick = testarChave;
+$('#btnApagarChave').onclick = () => { if (confirm('Apagar a chave deste navegador?')) { ls.del('chave'); renderConfig(); renderFabrica(); diario('Chave apagada deste navegador.'); } };
+$('#btnSalvarEstilo').onclick = () => { ls.set('estilo', {exemplos: $('#exemplos').value, idioma: $('#idiomaTit').value}); aviso('Estilo salvo.', 'ok'); };
+$('#btnExportar').onclick = () => {
+  const dados = {versao: 1, data: new Date().toISOString(), canais, pautas, estilo: ls.get('estilo', {}), filtros};
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(dados, null, 2)], {type: 'application/json'}));
+  a.download = `fabrica-shorts-copia-${isoDia(new Date())}.json`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
+$('#arqImportar').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (!Array.isArray(d.canais) || !Array.isArray(d.pautas)) throw new Error('formato');
+    if (!confirm(`Restaurar ${d.canais.length} canais e ${d.pautas.length} pautas? Os dados atuais deste navegador serão substituídos (a chave continua).`)) return;
+    canais = d.canais; pautas = d.pautas; ls.set('canais', canais); ls.set('pautas', pautas);
+    if (d.estilo) ls.set('estilo', d.estilo);
+    diario('Cópia de segurança restaurada.', 'ok'); renderTudo(); renderConfig(); aviso('Cópia restaurada. Clique em Atualizar radar.', 'ok');
+  } catch (err) { aviso('Esse arquivo não é uma cópia válida da Fábrica de Shorts.', 'erro'); }
+  e.target.value = '';
+};
+
+/* ---------- início ---------- */
+renderTudo(); renderDiario();
+const abaInicial = location.hash.slice(1);
+if (abaInicial && $('#aba-' + abaInicial)) mostrarAba(abaInicial);
+else if (!ls.get('chave', '')) mostrarAba('fabrica');
+
+window.FS = {lerEntradaCanal, adicionarCanais, removerCanal, atualizarRadar, analisar, filtrar, setFiltro, buscarTema, buscarIndicados,
+  criarPauta, mudarPauta, promptTitulos, traduzErro, cotaUsada, mediana, durSeg, ls, mostrarAba, testarChave,
+  get canais() { return canais; }, get pautas() { return pautas; }, get filtros() { return filtros; }};
+if (LOCAL && PARAMS.has('autoteste')) { const s = document.createElement('script'); s.src = 'teste_painel.js'; document.body.appendChild(s); }
+</script>
+</body>
+</html>
